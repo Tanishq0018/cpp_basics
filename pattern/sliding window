@@ -1,0 +1,226 @@
+sliding imp questions 
+1. Maximum Sum Subarray of Size K
+
+Type: Fixed-size sliding window
+
+Problem
+
+Given an array and an integer K, find the maximum sum of any contiguous subarray of size K.
+
+Approach
+
+Maintain a window of size K
+
+Add new element, remove previous element when window exceeds K
+
+Track the maximum sum
+
+C++ Solution
+#include <bits/stdc++.h>
+using namespace std;
+
+int maxSumSubarrayK(vector<int>& arr, int k) {
+    int sum = 0, maxSum = INT_MIN;
+
+    for (int i = 0; i < arr.size(); i++) {
+        sum += arr[i];
+
+        if (i >= k - 1) {
+            maxSum = max(maxSum, sum);
+            sum -= arr[i - k + 1];
+        }
+    }
+    return maxSum;
+}
+
+int main() {
+    vector<int> arr = {2, 1, 5, 1, 3, 2};
+    int k = 3;
+    cout << maxSumSubarrayK(arr, k);
+}
+
+⭐ 2. Longest Substring Without Repeating Characters
+
+Type: Variable-size sliding window
+
+Approach
+
+Use a map to store last index of every character
+
+Expand right pointer
+
+Move left pointer to avoid duplicates
+
+Track max window size
+
+C++ Solution
+int lengthOfLongestSubstring(string s) {
+    vector<int> lastIndex(256, -1);
+    int left = 0, maxLen = 0;
+
+    for (int right = 0; right < s.size(); right++) {
+        if (lastIndex[s[right]] >= left) {
+            left = lastIndex[s[right]] + 1;
+        }
+        lastIndex[s[right]] = right;
+        maxLen = max(maxLen, right - left + 1);
+    }
+    return maxLen;
+}
+
+⭐ 3. Longest Subarray with Sum ≤ K
+
+Type: Variable sliding window (only for positive numbers)
+
+Approach
+
+Expand window by adding arr[right]
+
+Shrink when sum > K
+
+Track max length
+
+C++ Solution
+int longestSubarraySumLEK(vector<int>& arr, int k) {
+    int left = 0, sum = 0, maxLen = 0;
+
+    for (int right = 0; right < arr.size(); right++) {
+        sum += arr[right];
+
+        while (sum > k) {
+            sum -= arr[left];
+            left++;
+        }
+
+        maxLen = max(maxLen, right - left + 1);
+    }
+    return maxLen;
+}
+
+⭐ 4. Minimum Window Substring
+
+Type: Hard variable sliding window
+Condition: Find smallest window in s that contains all characters of t.
+
+C++ Solution
+string minWindow(string s, string t) {
+    if (t.size() > s.size()) return "";
+
+    vector<int> need(128, 0), window(128, 0);
+    for (char c : t) need[c]++;
+
+    int required = 0;
+    for (int x : need) if (x > 0) required++;
+
+    int left = 0, right = 0, formed = 0;
+    int minLen = INT_MAX, start = 0;
+
+    while (right < s.size()) {
+        char c = s[right];
+        window[c]++;
+        if (window[c] == need[c]) formed++;
+
+        while (formed == required) {
+            if (right - left + 1 < minLen) {
+                minLen = right - left + 1;
+                start = left;
+            }
+            char d = s[left];
+            window[d]--;
+            if (window[d] < need[d]) formed--;
+            left++;
+        }
+        right++;
+    }
+    return minLen == INT_MAX ? "" : s.substr(start, minLen);
+}
+
+⭐ 5. Count Occurrences of Anagrams
+
+Given a string s and pattern p, count how many substrings of s are anagrams of p.
+
+C++ Solution
+int countAnagrams(string s, string p) {
+    if (p.size() > s.size()) return 0;
+
+    vector<int> freqP(26, 0), freqS(26, 0);
+    for (char c : p) freqP[c - 'a']++;
+
+    int count = 0, k = p.size();
+
+    for (int i = 0; i < s.size(); i++) {
+        freqS[s[i] - 'a']++;
+
+        if (i >= k) {
+            freqS[s[i - k] - 'a']--;
+        }
+
+        if (freqP == freqS) count++;
+    }
+    return count;
+}
+
+⭐ 6. Fruit Into Baskets (Longest Subarray with ≤ 2 Distinct Elements)
+C++ Solution
+int totalFruit(vector<int>& fruits) {
+    unordered_map<int, int> mp;
+    int left = 0, maxLen = 0;
+
+    for (int right = 0; right < fruits.size(); right++) {
+        mp[fruits[right]]++;
+
+        while (mp.size() > 2) {
+            mp[fruits[left]]--;
+            if (mp[fruits[left]] == 0)
+                mp.erase(fruits[left]);
+            left++;
+        }
+        maxLen = max(maxLen, right - left + 1);
+    }
+    return maxLen;
+}
+
+⭐ 7. Sliding Window Maximum (Deque Method)
+
+Type: Hard fixed-window sliding window
+Find max in every window of size k.
+
+C++ Solution
+vector<int> maxSlidingWindow(vector<int>& nums, int k) {
+    deque<int> dq;
+    vector<int> ans;
+
+    for (int i = 0; i < nums.size(); i++) {
+        if (!dq.empty() && dq.front() == i - k) 
+            dq.pop_front();
+
+        while (!dq.empty() && nums[dq.back()] < nums[i])
+            dq.pop_back();
+
+        dq.push_back(i);
+
+        if (i >= k - 1)
+            ans.push_back(nums[dq.front()]);
+    }
+    return ans;
+}
+
+⭐ 8. First Negative Number in Every Window of Size K
+C++ Solution
+vector<int> firstNegative(vector<int>& arr, int k) {
+    queue<int> q;
+    vector<int> ans;
+
+    for (int i = 0; i < arr.size(); i++) {
+        if (arr[i] < 0)
+            q.push(i);
+
+        if (i >= k - 1) {
+            while (!q.empty() && q.front() <= i - k)
+                q.pop();
+
+            ans.push_back(q.empty() ? 0 : arr[q.front()]);
+        }
+    }
+    return ans;
+}
